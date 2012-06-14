@@ -6,7 +6,7 @@ import os
 
 import apaf
 from apaf  import config
-from apaf.utils.osx_support import OSXPatchCommand
+
 
 ICONFILE = None
 
@@ -23,9 +23,11 @@ if config.platform == 'win32':
                             join(config._root_dir, 'win32blob.py'))
 
             _py2exe.create_binaries(self, *args, **kwargs)
-
+    ADDITIONAL_COMMANDS = {}
 elif config.platform == 'darwin':
     import py2app
+    from apaf.utils.osx_support import OSXPatchCommand
+    ADDITIONAL_COMMANDS = {'osx_patch': OSXPatchCommand}
 
 
 APP = [os.path.join('apaf', 'run.py')]
@@ -64,13 +66,11 @@ OPTIONS_PY2EXE = dict(
 PLATFORM_OPTIONS['win32'] = dict(
     zipfile = None,
     console = APP,
+
 #    windows = APP,    # run as window, not console application.
 )
 
 PLATFORM_OPTIONS['darwin'] = dict(
-    cmdclass={
-        'osx_patch': OSXPatchCommand
-    },
 )
 
 setup(
@@ -86,5 +86,6 @@ setup(
     ),
     entry_points=dict(console_scripts=['apaf = apaf.run:main']),
     packages=find_packages(exclude=['test']),
+    cmdclass=ADDITIONAL_COMMANDS,
     **PLATFORM_OPTIONS[config.platform]
 )
